@@ -1,5 +1,9 @@
 from datetime import timedelta
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -91,25 +95,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'epms',  # Replace with your actual database name
         'USER': 'root',  # Replace with your MySQL username
-        'PASSWORD': '123456',  # Replace with your MySQL password
+        # Replace with your MySQL password
+        'PASSWORD': os.getenv('password_bd'),
         'HOST': 'localhost',  # Use '127.0.0.1' if 'localhost' doesn't work
         'PORT': '3306',  # The default MySQL port
 
     }
 }
 
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'epms_db',  # Replace with your actual database name
-#         'USER': 'dbmasteruser',  # Replace with your MySQL username
-#         'PASSWORD': 'ZJ2#fb7[gVRJxB]s0513wLwrj(-yCGtd',
-#         'HOST': 'ls-c9acfb32c22fe12fa72569c89733b6b8f5ed7ac1.citdgny2wnek.ap-south-1.rds.amazonaws.com',
-#         'PORT': '3306',  # The default MySQL port
-
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
