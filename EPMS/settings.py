@@ -2,6 +2,19 @@ from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from decouple import config
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',  # or whatever database you're using
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
 
 load_dotenv()
 
@@ -93,13 +106,11 @@ SIMPLE_JWT = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'epms',  # Replace with your actual database name
-        'USER': 'root',  # Replace with your MySQL username
-        # Replace with your MySQL password
-        'PASSWORD': os.getenv('password_bd'),
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
         'HOST': 'localhost',  # Use '127.0.0.1' if 'localhost' doesn't work
         'PORT': '3306',  # The default MySQL port
-
     }
 }
 
