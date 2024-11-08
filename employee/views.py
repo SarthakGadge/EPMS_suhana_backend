@@ -24,17 +24,28 @@ class EmployeeView(APIView):
 
     # POST request: Create a new employee
     def post(self, request):
-        if not request.data.role == "employee":
+        if request.user.role != "employee":
             return Response({"You dont have access to this"}, status=status.HTTP_401_UNAUTHORIZED)
-        serializer = EmployeeSerializer(data=request.data)
+
+        id = request.user.id
+
+        if Employee.objects.filter(user_id=id).exists():
+            return Response({"msg": "Employee record already exists for this user."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        # Create a copy to avoid modifying the original request data
+        data = request.data.copy()
+        data['user'] = id        # Add user_id to the data
+
+        serializer = EmployeeSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # PATCH request: Update an existing employee by ID
     def patch(self, request, employee_id=None):
-        if not request.data.role == "employee":
+        if not request.user.role == "employee":
             return Response({"You dont have access to this"}, status=status.HTTP_401_UNAUTHORIZED)
         employee = get_object_or_404(Employee, employee_id=employee_id)
         serializer = EmployeeSerializer(

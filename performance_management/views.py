@@ -129,21 +129,19 @@ class SelfEvaluationView(APIView):
 
         # Retrieve the evaluation based on the ID and verify existence
         user_id = request.user.id
-        manager = get_object_or_404(Manager, manager_id=user_id)
-        print(manager)
+        # print('idhar')
+        # print(user_id)
+        manager = get_object_or_404(Manager, user_id=user_id)
         evaluation = get_object_or_404(PerformanceEvaluation, id=evaluation_id)
-        print(evaluation)
-
-        # Ensure self-rating has been completed by the employee
-        if not evaluation.self_rating:
-            return Response({"error": "Self-rating must be completed by the employee before manager can evaluate."},
-                            status=status.HTTP_400_BAD_REQUEST)
+        # if not evaluation.self_rating:
+        #     return Response({"error": "Self-rating must be completed by the employee before manager can evaluate."},
+        #                     status=status.HTTP_400_BAD_REQUEST)
 
         serializer = ManagerEvaluationSerializer(
             evaluation, data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.save(manager_id=manager.id)
+            serializer.save(manager_id=manager)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
