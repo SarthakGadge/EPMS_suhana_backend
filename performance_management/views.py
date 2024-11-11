@@ -81,6 +81,8 @@ class PerformanceEvaluationView(APIView):
 
 class SelfEvaluationView(APIView):
     def get(self, request):
+        # if request.user.role == 'admin':
+        #     return Response({"msg": "You are unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
         eval_instance = PerformanceEvaluation.objects.all()
         serializer = PerformanceEvaluationSerializer(eval_instance, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

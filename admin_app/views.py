@@ -44,6 +44,14 @@ class CreateUserView(APIView):
 
 
 class AdminUpdateView(APIView):
+    def get(self, request):
+        if request.user.role != 'admin':
+            return Response({"msg": "You are unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        admin_instance = Admin.objects.all()
+        serializer = AdminSerializer(admin_instance, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def get_object(self):
         try:
             return Admin.objects.get()

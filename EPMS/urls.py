@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/', include('performance_management.urls')),
     path('api/', include('admin_app.urls')),
     path('api/', include('attendence.urls')),
+    path('api/', include('manager.urls')),
     path('api/', include('employee.urls')),
 
 ]

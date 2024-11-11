@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'attendence',
     'employee',
     'tasks',
+    'manager',
     'userauth',
     'drf_yasg',
     'feedback',
