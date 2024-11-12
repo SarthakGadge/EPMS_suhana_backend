@@ -6,6 +6,10 @@ from django.views import View
 from django.http import JsonResponse
 from django.db import connection
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Goal
+from .serializers import GoalSerializer
+from rest_framework import status
 
 
 class EmployeeListView(APIView):
@@ -65,3 +69,13 @@ class PerformanceGoalCreateView(View):
             return JsonResponse({"error": f"Failed to create performance goal due to integrity error: {str(e)}"}, status=400)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+
+
+class GetGoals(APIView):
+    def get(self, request):
+        try:
+            goals = Goal.objects.all()
+            serializer = GoalSerializer(goals, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

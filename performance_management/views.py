@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from userauth.models import Employee
+from .models import Goal
 from userauth.models import Manager
 
 from .serializers import (

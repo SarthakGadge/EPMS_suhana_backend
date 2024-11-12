@@ -8,6 +8,7 @@ import json
 from userauth.models import Manager
 from .serializers import ManagerSerializer
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -118,5 +119,46 @@ class ManagerCreateView(APIView):
 
         except IntegrityError as e:
             return JsonResponse({"error": f"Integrity error: {str(e)}"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ManagerFeedbackCreateView(APIView):
+    def post(self, request):
+        try:
+            # Parse JSON payload
+            data = json.loads(request.body)
+            emp_id = data.get("emp_id")
+
+            manager_id = request.user.id
+
+            manager_details = get_object_or_404(Manager, user_id=manager_id)
+
+            manager_emp_id = manager_details.manager_id
+
+            rating = data.get("rating")
+            emp_feedback = data.get("emp_feedback")  # Manager feedback text
+
+            # Validate required fields
+            if not all([emp_id, manager_emp_id, rating, emp_feedback]):
+                return JsonResponse({"error": "Missing required fields"}, status=400)
+
+            # Validate the rating (for example, between 1 and 5)
+            if not (1 <= rating <= 5):
+                return JsonResponse({"error": "Rating must be between 1 and 5"}, status=400)
+
+                # Insert data into manager_feedback table
+                with transaction.atomic():
+                    cursor.execute("""
+                        INSERT INTO manager_feedback
+                        (emp_id, manager_emp_id, rating, emp_feedback)
+                        VALUES (%s, %s, %s, %s)
+                    """, [emp_id, manager_emp_id, rating, emp_feedback])
+
+            return JsonResponse({"message": "Manager feedback created successfully"}, status=201)
+
+        except IntegrityError as e:
+            return JsonResponse({"error": f"Failed to create manager feedback due to integrity error: {str(e)}"}, status=400)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
