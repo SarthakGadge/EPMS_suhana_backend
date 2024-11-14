@@ -8,19 +8,20 @@ from attendence.models import AttendanceRecord
 
 
 class EmployeeView(APIView):
-    def get(self, request, employee_id=None):
-        if employee_id:
-            if not request.user.role == "employee":
-                return Response({"You dont have access to this"}, status=status.HTTP_401_UNAUTHORIZED)
-            employee = get_object_or_404(Employee, employee_id=employee_id)
+    def get(self, request):
+        role = request.user.role
+        id = request.user.id
+
+        if role == "employee":
+            employee = get_object_or_404(Employee, user_id=id)
             serializer = EmployeeSerializer(employee)
+
+        elif role == "manager" or role == "admin":
+            employees = Employee.objects.all()
+            serializer = EmployeeSerializer(employees, many=True)
         else:
-            if request.user.role == "manager" or request.user.role == "admin":
-                employees = Employee.objects.all()
-                serializer = EmployeeSerializer(employees, many=True)
-            else:
-                return Response({"You dont have access to this"}, status=status.HTTP_401_UNAUTHORIZED)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({"You dont have access to this"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # POST request: Create a new employee
     def post(self, request):
