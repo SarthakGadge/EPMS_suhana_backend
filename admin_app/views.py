@@ -3,11 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from django.utils.crypto import get_random_string
-from .serializers import CreateUserSerializer
+from .serializers import CreateUserSerializer, AdmintoEmployeeFeedbackSerializer, AdmintoManagerFeedbackSerializer
 from userauth.utils import user_creation_and_welcome
 from .serializers import AdminSerializer
 from rest_framework.exceptions import NotFound
 from userauth.models import Admin
+from .models import AdminFeedbackEmployee, AdminFeedbackManager
 
 
 class CreateUserView(APIView):
@@ -64,4 +65,34 @@ class AdminUpdateView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminFeedbacktoEmployee(APIView):
+    def get(self, request):
+        instance = AdminFeedbackEmployee.objects.all()
+        serializer = AdmintoEmployeeFeedbackSerializer(instance, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = AdmintoEmployeeFeedbackSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg": "Feedback given successfully."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminFeedbacktoManager(APIView):
+    def get(self, request):
+        instance = AdminFeedbackManager.objects.all()
+        serializer = AdmintoManagerFeedbackSerializer(instance, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = AdmintoManagerFeedbackSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"msg": "Feedback given successfully."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,8 @@
 from userauth.models import CustomUser, Admin
 from rest_framework import serializers
+from .models import AdminFeedbackEmployee, AdminFeedbackManager
+from django.core.exceptions import ValidationError
+from rest_framework import status
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -32,3 +35,25 @@ class AdminSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+
+class AdmintoManagerFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminFeedbackManager
+        fields = '__all__'
+
+    def validate_rating(self, value):
+        if value > 5:  # Adjusted to ensure the rating is not more than 5
+            raise ValidationError({"msg": "The rating can't be more than 5."})
+        return value  # Return the valid rating
+
+
+class AdmintoEmployeeFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminFeedbackEmployee
+        fields = '__all__'
+
+    def validate_rating(self, value):
+        if value > 5:  # Same adjustment here
+            raise ValidationError({"msg": "The rating can't be more than 5."})
+        return value  # Return the va
