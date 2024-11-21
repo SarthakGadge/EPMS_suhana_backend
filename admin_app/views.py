@@ -9,6 +9,8 @@ from .serializers import AdminSerializer
 from rest_framework.exceptions import NotFound
 from userauth.models import Admin
 from .models import AdminFeedbackEmployee, AdminFeedbackManager
+from django.db import connection
+from userauth.RolePermission import IsAdmin
 
 
 class CreateUserView(APIView):
@@ -96,3 +98,31 @@ class AdminFeedbacktoManager(APIView):
             serializer.save()
             return Response({"msg": "Feedback given successfully."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetAllFeedback(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        try:
+            all_data = {}  # Store results from both tables
+
+            with connection.cursor() as cursor:
+                # Fetch data from manager_managerfeedback
+                cursor.execute("SELECT * FROM manager_managerfeedback")
+                columns = [col[0] for col in cursor.description]
+                manager_feedback = [dict(zip(columns, row))
+                                    for row in cursor.fetchall()]
+                all_data["manager_feedback_to_employee"] = manager_feedback
+
+                # Fetch data from feedback_feedback
+                cursor.execute("SELECT * FROM feedback_feedback")
+                columns = [col[0] for col in cursor.description]
+                feedback_data = [dict(zip(columns, row))
+                                 for row in cursor.fetchall()]
+                all_data["employee_feedback_to_manager"] = feedback_data
+
+            return Response(all_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
