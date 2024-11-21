@@ -81,6 +81,71 @@ class PerformanceGoalCreateView(View):
             return JsonResponse({"error": str(e)}, status=500)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class PerformanceGoalUpdateView(View):
+    def patch(self, request, employee_id, goal_id):
+        try:
+            # Parse JSON payload
+            data = json.loads(request.body)
+            description = data.get("description")
+            weightage = data.get("weightage")
+            start_date = data.get("start_date")
+            end_date = data.get("end_date")
+            status = data.get("status")
+
+            # Ensure at least one field is provided for update
+            if not any([description, weightage, start_date, end_date, status]):
+                return JsonResponse({"error": "No fields provided to update"}, status=400)
+
+            # Build dynamic query for updating fields
+            update_fields = []
+            params = []
+
+            if description is not None:
+                update_fields.append("description = %s")
+                params.append(description)
+            if weightage is not None:
+                update_fields.append("weightage = %s")
+                params.append(weightage)
+            if start_date is not None:
+                update_fields.append("start_date = %s")
+                params.append(start_date)
+            if end_date is not None:
+                update_fields.append("end_date = %s")
+                params.append(end_date)
+            if status is not None:
+                update_fields.append("status = %s")
+                params.append(status)
+
+            params.extend([goal_id, employee_id])
+
+            # Check if the specific goal exists for the given employee_id
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COUNT(*)
+                    FROM performance_management_goal
+                    WHERE id = %s AND employee_id = %s
+                """, [goal_id, employee_id])
+                if cursor.fetchone()[0] == 0:
+                    return JsonResponse({"error": "Goal not found for the given employee"}, status=404)
+
+            # Update the record in the database
+            with transaction.atomic():
+                with connection.cursor() as cursor:
+                    cursor.execute(f"""
+                        UPDATE performance_management_goal
+                        SET {', '.join(update_fields)}
+                        WHERE id = %s AND employee_id = %s
+                    """, params)
+
+            return JsonResponse({"message": "Performance goal updated successfully"}, status=200)
+
+        except IntegrityError as e:
+            return JsonResponse({"error": f"Failed to update performance goal due to integrity error: {str(e)}"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+
 # import json
 # from django.utils.decorators import method_decorator
 # from django.views.decorators.csrf import csrf_exempt

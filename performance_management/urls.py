@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .employee import EmployeeListView, PerformanceGoalCreateView, GetGoals
+from .employee import EmployeeListView, PerformanceGoalCreateView, GetGoals, PerformanceGoalUpdateView
 from .add_evaluation import PerformanceGoalDescriptionView, PerformanceEvaluationCreateView
 from .views import (
     DepartmentViewSet,
@@ -43,6 +43,8 @@ urlpatterns = [
          name='self-evaluation'),
     path('evaluation/<int:evaluation_id>/',
          SelfEvaluationView.as_view(), name='self-evaluation-update'),
-    path("goals/", GetGoals.as_view(), name='get_goals')
+    path("goals/", GetGoals.as_view(), name='get_goals'),
+    path('performance-goals/<int:employee_id>/<int:goal_id>/update/',
+         PerformanceGoalUpdateView.as_view(), name='performance-goal-update'),
 
 ]
