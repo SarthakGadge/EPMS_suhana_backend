@@ -13,7 +13,8 @@ from .views import (
     EmployeeTrainingViewSet,
     NotificationViewSet,
     PerformanceEvaluationView,
-    SelfEvaluationView
+    SelfEvaluationView,
+    TrainingView
 )
 
 router = DefaultRouter()
@@ -23,7 +24,7 @@ router.register(r'goals', GoalViewSet)
 # router.register(r'evaluations', PerformanceEvaluationViewSet)
 # router.register(r'reviews', PerformanceReviewViewSet)
 router.register(r'feedback', FeedbackViewSet)
-router.register(r'training', TrainingViewSet)
+# router.register(r'training', TrainingViewSet)
 router.register(r'employee-training', EmployeeTrainingViewSet)
 router.register(r'notifications', NotificationViewSet)
 # router.register(r'employees', EmployeeListView, basename='employee')
@@ -44,7 +45,10 @@ urlpatterns = [
     path('evaluation/<int:evaluation_id>/',
          SelfEvaluationView.as_view(), name='self-evaluation-update'),
     path("goals/", GetGoals.as_view(), name='get_goals'),
+    path("training/", TrainingView.as_view(), name='training-assigned'),
     path('performance-goals/<int:employee_id>/<int:goal_id>/update/',
          PerformanceGoalUpdateView.as_view(), name='performance-goal-update'),
+    path('training/<int:pk>/',
+         TrainingView.as_view(), name='training-detail'),
 
 ]

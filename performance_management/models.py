@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from userauth.models import Manager
+from userauth.models import Manager, Employee
 
 
 class Department(models.Model):
@@ -106,6 +106,8 @@ class Training(models.Model):
     end_date = models.DateField()
     status = models.CharField(max_length=20, choices=[(
         'Completed', 'Completed'), ('In Progress', 'In Progress')])
+    manager = models.ForeignKey(Manager, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

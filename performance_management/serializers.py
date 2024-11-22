@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Department, PerformanceEvaluation, Role, Goal, Feedback, Training, EmployeeTraining, Notification, PerformanceReview
+from rest_framework.serializers import ValidationError
 
 
 from rest_framework import serializers
@@ -93,6 +94,23 @@ class TrainingSerializer(serializers.ModelSerializer):
         model = Training
         fields = '__all__'
         ref_name = 'TrainingSerializer'
+
+    def validate(self, data):
+        # List all fields in the model
+        if self.instance and self.context.get('request').method == 'PATCH':
+            # Skip validation for missing fields during partial updates
+            return data
+
+        required_fields = [
+            'name', 'description', 'start_date', 'end_date',
+            'status', 'manager', 'employee'
+        ]
+        missing_fields = [i for i in required_fields if i not in data]
+
+        if missing_fields:
+            raise ValidationError({"msg": f"{missing_fields} are required"})
+        return data
+
 
 # EmployeeTraining Serializer
 
