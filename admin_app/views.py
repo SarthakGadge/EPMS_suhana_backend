@@ -105,22 +105,48 @@ class GetAllFeedback(APIView):
 
     def get(self, request):
         try:
-            all_data = {}  # Store results from both tables
-
+            all_data = {}
             with connection.cursor() as cursor:
                 # Fetch data from manager_managerfeedback
-                cursor.execute("SELECT * FROM manager_managerfeedback")
-                columns = [col[0] for col in cursor.description]
-                manager_feedback = [dict(zip(columns, row))
-                                    for row in cursor.fetchall()]
-                all_data["manager_feedback_to_employee"] = manager_feedback
+                cursor.execute("""
+        SELECT
+            mf.id,
+            mf.rating,
+            mf.feedback,
+            e.full_name AS employee_name,
+            m.full_name AS manager_name
+        FROM
+            manager_managerfeedback mf
+        JOIN
+            employee e ON mf.employee_id = e.employee_id
+        JOIN
+            manager m ON mf.manager_id = m.manager_id;
+    """)
 
-                # Fetch data from feedback_feedback
-                cursor.execute("SELECT * FROM feedback_feedback")
                 columns = [col[0] for col in cursor.description]
-                feedback_data = [dict(zip(columns, row))
-                                 for row in cursor.fetchall()]
-                all_data["employee_feedback_to_manager"] = feedback_data
+                data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                all_data['manager_feedback_to_emp'] = data
+
+                cursor.execute("""
+SELECT 
+    f.id, 
+    f.feedback_text, 
+    f.feedback_type, 
+    f.anonymous, 
+    f.created_at, 
+    f.rating, 
+    e.full_name AS employee_name, 
+    m.full_name AS manager_name
+FROM 
+    feedback_feedback f
+LEFT JOIN 
+    employee e ON f.employee_id = e.employee_id
+LEFT JOIN 
+    manager m ON f.manager_id = m.manager_id;""")
+                columns_second = [col[0] for col in cursor.description]
+                second_batch = [dict(zip(columns_second, row))
+                                for row in cursor.fetchall()]
+                all_data['emp_to_manager_feedback'] = second_batch
 
             return Response(all_data, status=status.HTTP_200_OK)
 

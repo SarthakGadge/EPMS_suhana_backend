@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from userauth.models import Manager, Employee
 
 
 # models.py
@@ -16,10 +17,9 @@ class Feedback(models.Model):
         ('Manager to Employee', 'Manager to Employee'),
     ]
 
-    from_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='feedback_given', on_delete=models.CASCADE)
-    to_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='feedback_received', on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    manager = models.ForeignKey(
+        Manager, on_delete=models.CASCADE, null=True, blank=True)
     feedback_text = models.TextField()
     feedback_type = models.CharField(max_length=20, choices=FEEDBACK_TYPES)
     anonymous = models.BooleanField(default=False, null=True, blank=True)

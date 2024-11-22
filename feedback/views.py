@@ -8,6 +8,9 @@ from rest_framework import viewsets, permissions
 from django.db.models import Q
 from .models import Feedback
 from .serializers import FeedbackSerializer
+from django.shortcuts import get_object_or_404
+from userauth.models import Employee
+from rest_framework.response import Response
 
 
 class FeedbackViewSet(viewsets.ModelViewSet):
@@ -61,9 +64,11 @@ class FeedbackCreateView(APIView):
             # Continue with feedback creation if all fields are provided
             feedback_text = data.get("feedback_text")
             rating = data.get("rating")
-            from_user_id = request.user.id
+            from_id = request.user.id
+            from_user_id = Employee.objects.get(user_id=from_id)
+
             to_user_id = data.get(
-                "to_user_id") if feedback_type == "Manager Feedback" else from_user_id
+                "manager_id") if feedback_type == "Manager Feedback" else from_user_id
             anonymous = data.get("anonymous", 0)
 
             # Validate required fields
@@ -79,37 +84,40 @@ class FeedbackCreateView(APIView):
                 return JsonResponse({"error": "Rating must be between 1 and 5"}, status=400)
 
             # If it's manager feedback, validate to_user_id and retrieve manager's full name
-            manager_name = None
+            # manager_name = None
             if feedback_type == "Manager Feedback":
                 if not to_user_id:
                     return JsonResponse({"error": "Manager selection is required for manager feedback"}, status=400)
 
+            if feedback_type == "Self Feedback":
+                to_user_id = None
+
                 # Retrieve manager's full name from the Manager table
-                with connection.cursor() as cursor:
-                    cursor.execute("""
-                        SELECT full_name 
-                        FROM Manager 
-                        WHERE user_id = %s
-                    """, [to_user_id])
-                    result = cursor.fetchone()
+                # with connection.cursor() as cursor:
+                #     cursor.execute("""
+                #         SELECT full_name
+                #         FROM Manager
+                #         WHERE user_id = %s
+                #     """, [to_user_id])
+                #     result = cursor.fetchone()
 
-                    if not result:
-                        return JsonResponse({"error": "Manager not found"}, status=404)
+                #     if not result:
+                #         return JsonResponse({"error": "Manager not found"}, status=404)
 
-                    manager_name = result[0]  # full_name
+            # manager_name =
 
             # Insert data into feedback_feedback table
             with transaction.atomic():
                 with connection.cursor() as cursor:
                     cursor.execute("""
                         INSERT INTO feedback_feedback 
-                        (feedback_text, feedback_type, from_user_id, to_user_id, rating, anonymous, created_at)
+                        (feedback_text, feedback_type, employee_id, manager_id, rating, anonymous, created_at)
                         VALUES (%s, %s, %s, %s, %s, %s, NOW())
-                    """, [feedback_text, feedback_type, from_user_id, to_user_id, rating, anonymous])
+                    """, [feedback_text, feedback_type, from_user_id.employee_id, to_user_id, rating, anonymous])
 
             response_message = (
                 "Self-feedback submitted successfully" if feedback_type == "Self Feedback"
-                else f"Feedback for manager {manager_name} submitted successfully"
+                else f"Feedback for manager submitted successfully"
             )
             return JsonResponse({"message": response_message}, status=201)
 
