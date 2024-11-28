@@ -133,11 +133,11 @@ class ManagerListView(APIView):
         try:
             # Retrieve the list of managers from the Manager table
             with connection.cursor() as cursor:
-                cursor.execute("SELECT user_id, full_name FROM Manager")
+                cursor.execute("SELECT * FROM Manager")
                 managers = cursor.fetchall()
 
             # Format data as a list of dictionaries
-            manager_list = [{"user_id": manager[0],
+            manager_list = [{"manager_id": manager[0],
                              "full_name": manager[1]} for manager in managers]
 
             return JsonResponse({"managers": manager_list}, status=200)
